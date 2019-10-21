@@ -36,6 +36,14 @@
 [web_image_18]: ./images/class_id_38_01.jpg "Web image 18"
 [web_image_19]: ./images/class_id_40_01.png "Web image 19"
 [web_image_20]: ./images/class_id_40_02.jpg "Web image 20"
+[table_cme_es]: ./writeup_images/table_cme_es.png "table_cme_es"
+[table_experiment_1]: ./writeup_images/table_experiment_1.png "table_experiment_1"
+[table_experiment_2]: ./writeup_images/table_experiment_2.png "table_experiment_2"
+[table_final_model]: ./writeup_images/table_final_model.png "table_final_model"
+[table_hyper_final_model]: ./writeup_images/table_hyper_final_model.png "table_hyper_final_model"
+[table_hyper_lenetplus]: ./writeup_images/table_hyper_lenetplus.png "table_hyper_lenetplus"
+[table_lenetplus]: ./writeup_images/table_lenetplus.png "table_lenetplus"
+[table_web_prediction]: ./writeup_images/table_web_prediction.png "table_web_prediction"
 
 Overview
 ---
@@ -165,16 +173,7 @@ Here are some useful link introducing the concept of **CMA-ES**:
 Because **CMA-ES** is looking for continuous solutions, I also reference [this paper](https://arxiv.org/abs/1604.07269) to search integer solutions. I use **CMA-ES** to search 8 hyperparameters. Restricting all of their boundary to [0.0, 1.0].
 
 Here is how I transform the solutions found by **CMA-ES** to my model architecture.
-| Hyperparameter  |          Description          |  Transformation  |           Range            |
-| :-------------: | :---------------------------: | :--------------: | :------------------------: |
-|     c1_size     |     c1 layer filter size      | $2^{1+2*sol[0]}$ |  $[2^1, 2^3]$ = $[2, 8]$   |
-|    c1_depth     |    c1 layer filter number     | $2^{2+5*sol[1]}$ | $[2^2, 2^7]$ = $[4, 128]$  |
-|     c3_size     |     c3 layer filter size      | $2^{1+2*sol[2]}$ |  $[2^1, 2^3]$ = $[2, 8]$   |
-|    c3_depth     |    c3 layer filter number     | $2^{2+5*sol[3]}$ | $[2^2, 2^7]$ = $[4, 128]$  |
-|     c5_size     | c5 fully connected layer size | $2^{6+3*sol[4]}$ | $[2^6, 2^9]$ = $[64, 512]$ |
-|     f6_size     | f6 fully connected layer size | $2^{6+3*sol[5]}$ | $[2^6, 2^9]$ = $[64, 512]$ |
-| c5_dropout_rate |        c5 dropout rate        |     $sol[6]$     |        $[0.0, 1.0]$        |
-| f6_dropout_rate |        f6 dropout rate        |     $sol[7]$     |        $[0.0, 1.0]$        |
+![Transform CMA-ES solution][table_cme_es]
 
 ```python
 def solution2hyperparameter(solution):
@@ -252,84 +251,30 @@ There are two models I use later to compare with several differnt training techn
 ![2-Stage ConvNet][two_stage_convnet](Image is modified from [this paper](http://yann.lecun.com/exdb/publis/pdf/sermanet-ijcnn-11.pdf))
 
 1. **LeNetPlus**: It's almost like LeNet-5, except the input of c5 layer comes from the concatenation of s2 and s4.
-   |       Layer        |                 Description                 |
-   | :----------------: | :-----------------------------------------: |
-   |       Input        |             32x32x1 Gray image              |
-   | Convolution 5x5x6  | 1x1 stride, valid padding, outputs 28x28x6  |
-   |        RELU        |                                             |
-   |  Max pooling 2x2   | 2x2 stride, valid padding, outputs 14x14x6  |
-   | Convolution 5x5x16 | 1x1 stride, valid padding, outputs 10x10x16 |
-   |        RELU        |                                             |
-   |  Max pooling 2x2   |  2x2 stride, valid padding, outputs 5x5x16  |
-   |  Fully connected   |                 outputs 120                 |
-   |        RELU        |                                             |
-   |  Fully connected   |                 outputs 84                  |
-   |        RELU        |                                             |
-   |  Fully connected   |                 outputs 43                  |
-   |      Softmax       |                 outputs 43                  |
+   ![LeNetPlus architecture][table_lenetplus]
 
-2. **FinalModel**: It uses the same model architecture, but each layer's filter size and depth comes from CMA-ES searching stage. And it includes batch normalization and dropout. (Both are optional) 
-   |             Layer             |                 Description                  |
-   | :---------------------------: | :------------------------------------------: |
-   |             Input             |              32x32x1 Gray image              |
-   |      Convolution 4x4x17       | 1x1 stride, valid padding, outputs 29x29x17  |
-   | Batch normalization(Optional) |                                              |
-   |             RELU              |                                              |
-   |        Max pooling 2x2        | 2x2 stride, valid padding, outputs 14x14x17  |
-   |      Convolution 2x2x100      | 1x1 stride, valid padding, outputs 13x13x100 |
-   | Batch normalization(Optional) |                                              |
-   |             RELU              |                                              |
-   |        Max pooling 2x2        |  2x2 stride, valid padding, outputs 6x6x100  |
-   |        Fully connected        |                 outputs 506                  |
-   | Batch normalization(Optional) |                                              |
-   |             RELU              |                                              |
-   |       Dropout(Optional)       |                 rate = 0.850                 |
-   |        Fully connected        |                  outputs 91                  |
-   | Batch normalization(Optional) |                                              |
-   |             RELU              |                                              |
-   |       Dropout(Optional)       |                 rate = 0.215                 |
-   |        Fully connected        |                  outputs 43                  |
-   |            Softmax            |                  outputs 43                  |
+2. **FinalModel**: It uses the same model architecture, but each layer's filter size and depth comes from CMA-ES searching stage. And it includes batch normalization and dropout. (Both are optional)
+   ![FinalModel architecture][table_final_model]
 
 
 #### 4. Hyperparameters used in training process
 
 Below table lists the hyperparameters which are not relative to the model architecture, I use them in the process of training my model:
 
-1. **LeNetPlus**
-   |     Hyperparameter      |     Value      |
-   | :---------------------: | :------------: |
-   |         Epochs          |       50       |
-   |      Learning rate      |     0.001      |
-   |       Batch size        |      128       |
-   |        Optimizer        | Adam Optimizer |
-   |       Use dropout       |     False      |
-   | Use batch normalization |     False      |
+1. **LeNetPlus**:
+   
+   ![LeNetPlus hyperparameters][table_hyper_lenetplus]
 
 2. **FinalModel**:
-    |     Hyperparameter      |     Value      |
-    | :---------------------: | :------------: |
-    |         Epochs          |       50       |
-    |      Learning rate      |     0.001      |
-    |       Batch size        |      128       |
-    |        Optimizer        | Adam Optimizer |
-    |       Use dropout       |      True      |
-    | Use batch normalization |      True      |
+   
+   ![FinalModel hyperparameters][table_hyper_final_model]
 
 #### 5. Training approach
 
 #### Experiment 1:
 I use LeNetPlus model to try some different training techniques (batch normalization, dropout and data augmentation) in this experiment. The results are shown below.
+![Experiment 1][table_experiment_1]
 
-|      Model      |                Description                 | train acc. | test acc. |
-| :-------------: | :----------------------------------------: | :--------: | :-------: |
-| 1. LeNetPlus_01 |  Original training data with gauss noise   |   1.000    |   0.918   |
-| 2. LeNetPlus_01 | Original training data without gauss noise |   1.000    |   0.924   |
-| 3. LeNetPlus_01 |  Extended training data with gauss noise   |   0.998    |   0.944   |
-| 4. LeNetPlus_01 | Extended training data without gauss noise |   0.999    |   0.948   |
-| 5. LeNetPlus_02 |    Use batch normalization and dropout     |   0.998    |   0.936   |
-| 6. LeNetPlus_03 |                Use dropout                 |   0.996    |   0.936   |
-| 7. LeNetPlus_04 |          Use batch normalization           |   0.999    |   0.913   |
 ![LeNetPlus accuracy][lenetplus_acc]
 
 #### Experiment 1 summary:
@@ -343,17 +288,8 @@ Base on the result of *Experiment 1*, I use the FinalModel to try several differ
 
 The ***model_01_base*** are the FinalModel trained with its hyperparameters listed in **Sec.4**. Through ***model_02_no_bn*** to ***model_09_extend_no_noise***, their different parts compared with ***model_01_base*** are listed in the description column in below table. The results are shown below.
 
-|            Model            |              Description              | train acc. | test acc. |
-| :-------------------------: | :-----------------------------------: | :--------: | :-------: |
-|      1. model_01_base       |              Final model              |   0.999    |   0.979   |
-|      2. model_02_no_bn      |        No batch normalization         |   0.913    |   0.902   |
-|   3. model_03_no_dropout    |              No dropout               |   0.999    |   0.956   |
-|    4. model_04_dropout05    |       Dropout rate fixed to 0.5       |   0.999    |   0.972   |
-|    5. model_05_batch256     |            Batch size: 256            |   0.999    |   0.976   |
-|      6. model_06_lr003      |         Learning rate: 0.003          |   0.997    |   0.973   |
-|   7. model_07_basic_noise   |  Original training data, with noise   |   1.000    |   0.967   |
-| 8. model_08_basic_no_noise  | Original training data, without noise |   1.000    |   0.972   |
-| 9. model_09_extend_no_noise | Extended training data, without noise |   0.999    |   0.972   |
+![Experiment 2][table_experiment_2]
+
 ![Final model accuracy][final_model_acc]
 
 #### Experiment 2 summary:
@@ -397,18 +333,7 @@ The accuracy of predicting web image is: **0.85**
 
 ![Web images Top_1 result][web_image_prediction_top_1]
 
-|  Image   |                  Prediction                   |        True label         |  Image   |      Prediction      |      True label       |
-| :------: | :-------------------------------------------: | :-----------------------: | :------: | :------------------: | :-------------------: |
-| image_01 | <font color="red">Speed limit (60km/h)</font> |   Speed limit (30km/h)    | image_11 |      Road work       |       Road work       |
-| image_02 |             Speed limit (30km/h)              |   Speed limit (30km/h)    | image_12 |   Traffic signals    |    Traffic signals    |
-| image_03 |             Speed limit (70km/h)              |   Speed limit (70km/h)    | image_13 |  Bicycles crossing   |   Bicycles crossing   |
-| image_04 |                     Yield                     |           Yield           | image_14 |     Wild animals     | Wild animals crossing |
-| image_05 |                     Yield                     |           Yield           | image_15 |   Turn right ahead   |   Turn right ahead    |
-| image_06 |                     Yield                     |           Yield           | image_16 |   Turn left ahead    |    Turn left ahead    |
-| image_07 | <font color="red">Speed limit (50km/h)</font> |           Stop            | image_17 |      Ahead only      |      Ahead only       |
-| image_08 |      <font color="red">Bumpy road</font>      |      General caution      | image_18 |      Keep right      |      Keep right       |
-| image_09 |                 Double curve                  |       Double curve        | image_19 | Roundabout mandatory | Roundabout mandatory  |
-| image_10 |           Road narrows on the right           | Road narrows on the right | image_20 | Roundabout mandatory | Roundabout mandatory  |
+![Web image prediction][table_web_prediction]
 
 Sence there are only 20 samples, each fail prediction will cause 5% decrease of accuracy. Authough it's lower than the test accuracy (0.979). I think this result is still good enough.
 
