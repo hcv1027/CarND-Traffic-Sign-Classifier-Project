@@ -1,0 +1,5 @@
+model_checkpoint_path: "model_09_extend_no_noise_40_final"
+all_model_checkpoint_paths: "model_09_extend_no_noise_40_011"
+all_model_checkpoint_paths: "model_09_extend_no_noise_40_021"
+all_model_checkpoint_paths: "model_09_extend_no_noise_40_031"
+all_model_checkpoint_paths: "model_09_extend_no_noise_40_final"
